@@ -1,63 +1,65 @@
 package muscala
 
-import scala.tools.reflect.ToolBox
-import scala.tools.reflect.ToolBoxError
-import scala.reflect.runtime.universe._
-import scala.collection.mutable.ArrayBuffer
+import muscala.ConstraintObj.BadMatchException
 
-import muscala.ConstraintObj.{BadMatchException, Constraint}
+import scala.reflect.runtime.universe._
+import scala.tools.reflect.{ToolBox, ToolBoxError}
 
 object Extractor {
 
-    val tb = runtimeMirror(getClass.getClassLoader).mkToolBox()
-    import tb._, u._
+  val tb = runtimeMirror(getClass.getClassLoader).mkToolBox()
 
-    def parseScalaCode(t: String): List[Tree] = {
-        var controlPredicates = List[Tree]()
-        try {
-            val tree = tb.parse(t)
-            new Traverser() {
-                override def traverse(t: Tree) = {
-                    t match {
-                        case _if: If =>
-                            var exists = false
-                            for(prev <- controlPredicates)
-                                if(_if.cond.equalsStructure(prev))
-                                    exists = true
-                            
-                            if(!exists) controlPredicates ::= _if.cond
-                            _if.foreach(super.traverse)
-                        case t => super.traverse(t)
-                    }
-                }
-            }.traverse(tree)
-            return controlPredicates
+  import tb._
+  import u._
+
+
+  def modifyOperator(t: Tree): Select = t match {
+    case b@Select(t1, t2) => treeCopy.Select(b, t1, newTermName("$plus"))
+    case _ => null
+  }
+
+
+  def parseScalaCode(t: String): Tree = {
+    var controlPredicates = List[Tree]()
+    try {
+      val tree = tb.parse(t)
+      val newtree = new Transformer {
+        override def transform(tree: Tree): Tree = {
+          tree match {
+            case f1@Select(id, name) =>
+              name match {
+                case TermNameTag(a) =>
+                  if (a.toString.equals("$minus")) {
+                    modifyOperator(f1)
+                  }
+                  else {
+                    super.transform(tree)
+                  }
+                case _ => super.transform(tree)
+              }
+            case t => super.transform(t)
+          }
         }
-        catch {
-            case ex: ToolBoxError => throw new BadMatchException("ToolBox Match ErrorR")
-        }
+      }.transform(tree)
+      newtree
     }
-
-    def extractPreds(fileName: String): ArrayBuffer[Constraint] = {
-        val source = scala.io.Source.fromFile(fileName)
-        val lines = try source.mkString finally source.close()
-        val controlPredicates = parseScalaCode(lines)
-
-        var attributes: ArrayBuffer[Constraint] = new ArrayBuffer()
-        controlPredicates.foreach(c => {
-            val newC = new Constraint();
-            newC.constructFromTree(c);
-            attributes +=newC
-        })
-
-        return attributes
+    catch {
+      case ex: ToolBoxError => throw new BadMatchException("ToolBox Match ErrorR")
     }
+  }
 
-    def main(args: Array[String]): Unit = {
-        var attributes: ArrayBuffer[Constraint] = Extractor.extractPreds("input.scala")
-        println("Extracted Predicates:")
-        for(a <- attributes)
-            println(a.toString())
-    }
+  def extractPreds(fileName: String): Tree = {
+    val source = scala.io.Source.fromFile(fileName)
+    val lines = try source.mkString finally source.close()
+    val transformedtree = parseScalaCode(lines)
+
+    return transformedtree
+  }
+
+  def main(args: Array[String]): Unit = {
+    val mutated = Extractor.extractPreds("input.scala")
+    println(mutated.toString())
+
+  }
 
 }
