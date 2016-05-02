@@ -15,7 +15,7 @@ object ConstraintObj {
         def negation: Operator
     }
 
-    case class LessThan extends Operator {
+    case class LessThan() extends Operator {
         override def toString: String = { return "<" }
         def negation: Operator = { return new GreaterThanOrEq() }
     }
@@ -48,7 +48,7 @@ object ConstraintObj {
         override def toString: String = { return value }
     }
 
-    case class Constraint {
+    case class Constraint() {
         //println(showRaw(expr))
         var first: Operand = null
         var op: Operator = null

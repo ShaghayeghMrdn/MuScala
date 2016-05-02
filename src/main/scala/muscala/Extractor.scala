@@ -20,7 +20,6 @@ object Extractor {
 
 
   def parseScalaCode(t: String): Tree = {
-    var controlPredicates = List[Tree]()
     try {
       val tree = tb.parse(t)
       val newtree = new Transformer {
@@ -58,7 +57,8 @@ object Extractor {
 
   def main(args: Array[String]): Unit = {
     val mutated = Extractor.extractPreds("input.scala")
-    println(mutated.toString())
+    val w = tb.compile(mutated)
+    println(showCode(mutated))
 
   }
 
