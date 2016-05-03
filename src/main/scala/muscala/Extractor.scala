@@ -1,5 +1,7 @@
 package muscala
 
+import java.io.File
+
 import muscala.ConstraintObj.BadMatchException
 
 import scala.reflect.runtime.universe._
@@ -51,14 +53,41 @@ object Extractor {
     val source = scala.io.Source.fromFile(fileName)
     val lines = try source.mkString finally source.close()
     val transformedtree = parseScalaCode(lines)
-
     return transformedtree
   }
 
+  def saveToFile(path: String, code: Tree) = {
+    val writer = new java.io.PrintWriter(path)
+    try writer.write(showCode(code))
+    finally writer.close()
+  }
+
+  def getRecursiveListOfFiles(dir: File): Array[File] = {
+    val these = dir.listFiles
+    these.filter(p => p.getName.contains(".scala")) ++ these.filter(_.isDirectory).flatMap(getRecursiveListOfFiles)
+  }
+
   def main(args: Array[String]): Unit = {
-    val mutated = Extractor.extractPreds("input.scala")
-    val w = tb.compile(mutated)
-    println(showCode(mutated))
+  val outputdir = "mutatedFiles"
+   val inputdir = "."
+    var dir = new File(outputdir)
+
+    if (!dir.exists()) {
+      dir.mkdir()
+    }
+
+    for (scalafile <- getRecursiveListOfFiles(new File(inputdir))) {
+      val filename = scalafile.getName
+      try {
+        val mutated = Extractor.extractPreds(scalafile.getAbsolutePath)
+        saveToFile(inputdir+"/" + scalafile.getName, mutated)
+        println(s"""Mutation passed on  $filename . Skipping.... """)
+      } catch {
+        case e: Exception =>
+          println(s"""Mutation failed on  $filename . Skipping.... """)
+
+      }
+    }
 
   }
 
