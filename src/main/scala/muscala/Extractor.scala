@@ -15,13 +15,13 @@ object Extractor {
   import u._
 
 
-  def modifyOperator(t: Tree): Select = t match {
-    case b@Select(t1, t2) => treeCopy.Select(b, t1, newTermName("$plus"))
+  def modifyOperator(t: Tree, conf: Configuration, op: String, cl: Transformer): Select = t match {
+    case b@Select(t1, t2) => treeCopy.Select(b, t1, newTermName(conf.getMutation(op)))
     case _ => null
   }
 
 
-  def parseScalaCode(t: String): Tree = {
+  def parseScalaCode(t: String, conf: Configuration): Tree = {
     try {
       val tree = tb.parse(t)
       val newtree = new Transformer {
@@ -30,8 +30,13 @@ object Extractor {
             case f1@Select(id, name) =>
               name match {
                 case TermNameTag(a) =>
-                  if (a.toString.equals("$minus")) {
-                    modifyOperator(f1)
+                  if (conf.matchMutationTarget(a.toString)) {
+                    println(a.toString)
+                    f1 match {
+                      case b@Select(t1, t2) => super.transform(treeCopy.Select(b, t1, newTermName(conf.getMutation(a.toString))))
+                      case _ => null
+                    }
+
                   }
                   else {
                     super.transform(tree)
@@ -45,14 +50,16 @@ object Extractor {
       newtree
     }
     catch {
-      case ex: ToolBoxError => throw new BadMatchException("ToolBox Match ErrorR")
+      case ex: Exception =>
+        ex.printStackTrace()
+        throw new BadMatchException("ToolBox Match Error")
     }
   }
 
-  def extractPreds(fileName: String): Tree = {
+  def extractPreds(fileName: String, conf: Configuration): Tree = {
     val source = scala.io.Source.fromFile(fileName)
     val lines = try source.mkString finally source.close()
-    val transformedtree = parseScalaCode(lines)
+    val transformedtree = parseScalaCode(lines, conf)
     return transformedtree
   }
 
@@ -68,20 +75,24 @@ object Extractor {
   }
 
   def main(args: Array[String]): Unit = {
-  val outputdir = "mutatedFiles"
-   val inputdir = "."
-    var dir = new File(outputdir)
 
+    val conf = new Configuration("conf.txt")
+    conf.loadMapping()
+    println(conf.targetOp)
+    println(conf.mutationMapping)
+    val outputdir = "mutatedFiles"
+    val inputdir = "."
+    val dir = new File(outputdir)
     if (!dir.exists()) {
       dir.mkdir()
     }
-
     for (scalafile <- getRecursiveListOfFiles(new File(inputdir))) {
       val filename = scalafile.getName
       try {
-        val mutated = Extractor.extractPreds(scalafile.getAbsolutePath)
-        saveToFile(inputdir+"/" + scalafile.getName, mutated)
-        println(s"""Mutation passed on  $filename . Skipping.... """)
+        println(s"""Starting Mutation on  $filename  """)
+        val mutated = Extractor.extractPreds(scalafile.getAbsolutePath, conf)
+        saveToFile(outputdir + "/" + scalafile.getName, mutated)
+        println(s"""Mutation passed on  $filename  """)
       } catch {
         case e: Exception =>
           println(s"""Mutation failed on  $filename . Skipping.... """)
