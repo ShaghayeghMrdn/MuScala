@@ -78,8 +78,9 @@ object Extractor {
 val pack   =  packageMap.getOrElse(path.getAbsolutePath , "")
     val filepath = dir + "/" + path.getName
     var c = showCode(code).trim()
-    if (c.startsWith("/{") && c.endsWith("/}")) {
-      c = c.replaceFirst("/{", "")
+    
+    if (c(0) == '{' && c(c.length-1) == '}') {
+      c = c.substring(1)
       c = c.substring(0, c.length - 1).trim
     }
     if (c.endsWith("()")) {
