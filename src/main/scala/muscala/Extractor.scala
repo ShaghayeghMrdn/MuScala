@@ -2,8 +2,6 @@ package muscala
 
 import java.io.File
 
-import muscala.ConstraintObj.BadMatchException
-
 import scala.reflect.runtime.universe._
 import scala.tools.reflect.{ToolBox, ToolBoxError}
 
@@ -31,7 +29,7 @@ object Extractor {
               name match {
                 case TermNameTag(a) =>
                   if (conf.matchMutationTarget(a.toString)) {
-                    println(a.toString)
+                  //  println(a.toString)
                     f1 match {
                       case b@Select(t1, t2) => super.transform(treeCopy.Select(b, t1, newTermName(conf.getMutation(a.toString))))
                       case _ => null
@@ -52,20 +50,44 @@ object Extractor {
     catch {
       case ex: Exception =>
         ex.printStackTrace()
-        throw new BadMatchException("ToolBox Match Error")
+        null
+        ///throw new BadMatchException("ToolBox Match Error")
     }
   }
 
   def extractPreds(fileName: String, conf: Configuration): Tree = {
     val source = scala.io.Source.fromFile(fileName)
-    val lines = try source.mkString finally source.close()
+    val lines = try {
+      var str = ""
+      for (l <- source.getLines()) {
+        if (l.startsWith("package")) {
+          packageMap += (fileName -> l)
+        } else
+          str = str + l + "\n"
+      }
+      str
+    } finally {
+      source.close()
+    }
     val transformedtree = parseScalaCode(lines, conf)
     return transformedtree
   }
 
-  def saveToFile(path: String, code: Tree) = {
-    val writer = new java.io.PrintWriter(path)
-    try writer.write(showCode(code))
+  def saveToFile(dir : String, path: File, code: Tree) = {
+
+val pack   =  packageMap.getOrElse(path.getAbsolutePath , "")
+    val filepath = dir + "/" + path.getName
+    var c = showCode(code).trim()
+    if (c.startsWith("/{") && c.endsWith("/}")) {
+      c = c.replaceFirst("/{", "")
+      c = c.substring(0, c.length - 1).trim
+    }
+    if (c.endsWith("()")) {
+      c = c.substring(0, c.length - 2)
+    }
+    val writer = new java.io.PrintWriter(filepath)
+    try
+      writer.write(pack + "\n" + c)
     finally writer.close()
   }
 
@@ -73,6 +95,10 @@ object Extractor {
     val these = dir.listFiles
     these.filter(p => p.getName.contains(".scala")) ++ these.filter(_.isDirectory).flatMap(getRecursiveListOfFiles)
   }
+
+
+  var packageMap: Map[String, String] = Map[String, String]()
+
 
   def main(args: Array[String]): Unit = {
 
@@ -91,10 +117,11 @@ object Extractor {
       try {
         println(s"""Starting Mutation on  $filename  """)
         val mutated = Extractor.extractPreds(scalafile.getAbsolutePath, conf)
-        saveToFile(outputdir + "/" + scalafile.getName, mutated)
+        saveToFile(outputdir , scalafile, mutated)
         println(s"""Mutation passed on  $filename  """)
       } catch {
         case e: Exception =>
+          e.printStackTrace()
           println(s"""Mutation failed on  $filename . Skipping.... """)
 
       }

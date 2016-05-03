@@ -1,3 +1,4 @@
+
 {
   import java.io._;
   import java.lang.StringBuilder;
@@ -19,13 +20,13 @@
           if (item._2.<(1000))
             if (item._2.<(500))
               if (item._3.<(40))
-                amount = item._2.*(4)
+                amount = item._2./(4)
               else
                 ()
             else
               ()
           else
-            amount = item._2.*(7)
+            amount = item._2./(7)
         else
           ();
         scala.Tuple2(item, amount)

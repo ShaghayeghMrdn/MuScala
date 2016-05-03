@@ -25,7 +25,7 @@ class Configuration(filename: String) {
   var mutationMapping: Map[String, String] = Map[String, String]()
 
   def matchMutationTarget(s: String): Boolean = {
-    println(s)
+ //   println(s)
         targetOp.contains(s)
 
   }
@@ -56,7 +56,7 @@ class Configuration(filename: String) {
 
   def getMutation(s: String): String = {
     val b = operatorMap(mutationMapping(inverseOpMap(s)))
-    println(s""" $s -> $b """)
+   // println(s""" $s -> $b """)
     b
   }
 }
