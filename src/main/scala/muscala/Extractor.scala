@@ -15,49 +15,43 @@ object Extractor {
     import u._
 
     def modifyOperator(t: Tree, conf: Configuration, op: String, cl: Transformer): Select = t match {
-        case b @ Select(t1, t2) => treeCopy.Select(b, t1, newTermName(conf.getMutation(op)))
+        case b @ Select(t1, t2) => treeCopy.Select(b, t1, newTermName(conf.getMutation(op, "+")))
         case _ => null
     }
 
-    def parseScalaCode(content: String, conf: Configuration): List[Tree] = {
+    def parseScalaCode(content: String, conf: Configuration, op:String): Tree = {
         try {
             val tree = tb.parse(content)
-            val newTreeList: ListBuffer[Tree] = ListBuffer()
-            new Transformer {
+            val newTree = new Transformer {
                 override def transform(tree: Tree): Tree = {
                     tree match {
-                        case f1@Select(id, name) =>
+                        case f1 @ Select(id, name) => {
                             name match {
                                 case TermNameTag(a) =>
                                     if (conf.matchMutationTarget(a.toString)) {
-                                        println(a)
                                         f1 match {
-                                            case b @ Select(t1, t2) => {
-                                                val newTree = this.transform(treeCopy.Select(b, t1, newTermName(conf.getMutation(a.toString))))
-                                                newTreeList += newTree
-                                                newTree
-                                                }
+                                            case b@Select(t1, t2) => super.transform(treeCopy.Select(b, t1, newTermName(conf.getMutation(a.toString, op))))
                                             case _ => null
                                         }
                                     } else {
-                                        this.transform(tree)
+                                        super.transform(tree)
                                     }
-                                case _ => this.transform(tree)
+                                case _ => super.transform(tree)
                             }
-                        case t => this.transform(t)
+                        }
+                        case t => super.transform(t)
                     }
                 }
             }.transform(tree)
-            newTreeList.toList
+            newTree
         } catch {
             case ex: Exception =>
                 ex.printStackTrace()
                 null
-                //throw new BadMatchException("ToolBox Match Error")
         }
     }
 
-    def extractPreds(fileName: String, conf: Configuration): List[Tree] = {
+    def mutate(fileName: String, conf: Configuration): List[Tree] = {
         val source = scala.io.Source.fromFile(fileName)
         val lines = try {
             var str = ""
@@ -71,7 +65,13 @@ object Extractor {
         } finally {
             source.close()
         }
-        parseScalaCode(lines, conf)
+
+        var newTreeList: List[Tree] = List()
+        for(op <- conf.mutationMapping.keys) {
+            newTreeList ::= parseScalaCode(lines, conf, op)
+        }
+
+        newTreeList
     }
 
     def saveToFile(dir: String, path: File, code: Tree) = {
@@ -113,16 +113,18 @@ object Extractor {
             dir.mkdir()
         }
 
-        val count = 0
+
         for (scalafile <- getRecursiveListOfFiles(new File(targetFiles))) {
             val filename = scalafile.getName
             try {
                 println(s"""Starting Mutation on  $filename  """)
-                val mutatedList = Extractor.extractPreds(scalafile.getAbsolutePath, conf)
+                var count = 0
+                val mutatedList = Extractor.mutate(scalafile.getAbsolutePath, conf)
                 for (mutated <- mutatedList) {
-                    val mutantDir = outputdir + "/mutant_" + filename + "_" + count.toString()
+                    val mutantDir = outputdir+"/mutant_"+filename.substring(0, filename.length-6)+"_"+count.toString()
                     FileUtils.copyDirectory(new File(inputdir), new File(mutantDir))
-                    saveToFile(mutantDir, scalafile, mutated)
+                    saveToFile(mutantDir+"/src/main", scalafile, mutated)
+                    count += 1
                 }
                 println(s"""Mutation passed on  $filename  """)
             } catch {
