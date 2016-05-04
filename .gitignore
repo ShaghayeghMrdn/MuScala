@@ -5,3 +5,4 @@ lib/spark*
 .idea/*
 calculator-master*
 temp/*
+mutatedFiles/*
