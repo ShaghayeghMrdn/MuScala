@@ -101,6 +101,7 @@ object Extractor {
     var packageMap: Map[String, String] = Map[String, String]()
 
     def main(args: Array[String]): Unit = {
+        val start = java.lang.System.currentTimeMillis()
         val conf = new Configuration("conf.txt")
         conf.loadMapping()
         println(conf.targetOp)
@@ -135,6 +136,9 @@ object Extractor {
 
             }
         }
+
+        val diff = java.lang.System.currentTimeMillis() - start
+        println(diff)
     }
 
 }
