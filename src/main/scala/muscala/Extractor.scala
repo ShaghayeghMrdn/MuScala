@@ -31,7 +31,7 @@ object Extractor {
                   if (conf.matchMutationTarget(a.toString)) {
                   //  println(a.toString)
                     f1 match {
-                      case b@Select(t1, t2) => super.transform(treeCopy.Select(b, t1, newTermName(conf.getMutation(a.toString))))
+                      case b@Select(t1, t2) => super.transform(treeCopy.Select(b, t1, TermName(conf.getMutation(a.toString))))
                       case _ => null
                     }
 
@@ -78,7 +78,7 @@ object Extractor {
 val pack   =  packageMap.getOrElse(path.getAbsolutePath , "")
     val filepath = dir + "/" + path.getName
     var c = showCode(code).trim()
-    
+
     if (c(0) == '{' && c(c.length-1) == '}') {
       c = c.substring(1)
       c = c.substring(0, c.length - 1).trim
@@ -86,6 +86,7 @@ val pack   =  packageMap.getOrElse(path.getAbsolutePath , "")
     if (c.endsWith("()")) {
       c = c.substring(0, c.length - 2)
     }
+    println(filepath)
     val writer = new java.io.PrintWriter(filepath)
     try
       writer.write(pack + "\n" + c)

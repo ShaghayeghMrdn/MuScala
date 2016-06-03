@@ -56,7 +56,7 @@ class Configuration(filename: String) {
 
   def getMutation(s: String): String = {
     val b = operatorMap(mutationMapping(inverseOpMap(s)))
-   // println(s""" $s -> $b """)
+    println(s""" $s -> $b """)
     b
   }
 }
