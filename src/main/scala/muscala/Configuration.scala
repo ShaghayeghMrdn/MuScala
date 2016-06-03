@@ -54,9 +54,13 @@ class Configuration(filename: String) {
     } finally source.close()
   }
 
-  def getMutation(s: String): String = {
-    val b = operatorMap(mutationMapping(inverseOpMap(s)))
-    println(s""" $s -> $b """)
+  def getMutation(s: String, op: String): String = {
+    val inverse = inverseOpMap(s)
+    var b = s
+    if(inverse == op){
+        b = operatorMap(mutationMapping(inverse))
+        println(s""" $s -> $b """)
+    }
     b
   }
 }
