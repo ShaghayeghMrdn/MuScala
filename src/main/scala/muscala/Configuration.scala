@@ -23,14 +23,19 @@ class Configuration(filename: String) {
   }
   var targetOp: List[String] = List()
   var mutationMapping: Map[String, String] = Map[String, String]()
+  var enableSparkCompatibleMutation = false
 
   def matchMutationTarget(s: String): Boolean = {
- //   println(s)
-        targetOp.contains(s)
-
+      targetOp.contains(s)
   }
-
-  def loadMapping(): Unit = {
+  def enableSparkMutation():Configuration = {
+    this.enableSparkCompatibleMutation = true;
+    this
+  }
+  def getSparkConf(): Boolean = {
+    this.enableSparkCompatibleMutation
+  }
+  def loadMapping():Configuration = {
     val source = scala.io.Source.fromFile(filename)
     try {
       val iter = source.getLines()
@@ -52,15 +57,16 @@ class Configuration(filename: String) {
         }
       }
     } finally source.close()
+  return this
   }
 
   def getMutation(s: String, op: String): String = {
     val inverse = inverseOpMap(s)
-    var b = s
     if(inverse == op){
-        b = operatorMap(mutationMapping(inverse))
+        val b=  operatorMap(mutationMapping(inverse))
         println(s""" $s -> $b """)
+      return b
     }
-    b
+    return s
   }
 }
