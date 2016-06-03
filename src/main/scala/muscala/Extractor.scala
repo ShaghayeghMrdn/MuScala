@@ -123,7 +123,7 @@ object Extractor {
 
   def main(args: Array[String]): Unit = {
     val start = java.lang.System.currentTimeMillis()
-    val conf = new Configuration("conf.txt").loadMapping()
+    val conf = new Configuration("conf.txt").loadMapping().enableProbablisticMutation(1)
     println(conf.targetOp)
     println(conf.mutationMapping)
     val outputdir = "mutatedFiles"

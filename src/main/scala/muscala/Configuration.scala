@@ -4,6 +4,7 @@ package muscala
   * Created by malig on 5/3/16.
   */
 class Configuration(filename: String) {
+
   val operatorMap: Map[String, String] = Map[String, String](
     "&&" -> "$amp$amp",
     "+" -> "$plus",
@@ -17,13 +18,19 @@ class Configuration(filename: String) {
     "==" -> "$eq$eq",
     "!=" -> "$bang$eq"
   )
+
   var inverseOpMap : Map[String, String] = Map[String, String]()
+
   for(k <- operatorMap.keySet){
     inverseOpMap += (operatorMap(k) -> k)
   }
+
   var targetOp: List[String] = List()
   var mutationMapping: Map[String, String] = Map[String, String]()
   var enableSparkCompatibleMutation = false
+  var enablePMutation = false
+  var probab = 1f
+  val r = scala.util.Random
 
   def matchMutationTarget(s: String): Boolean = {
       targetOp.contains(s)
@@ -32,6 +39,14 @@ class Configuration(filename: String) {
     this.enableSparkCompatibleMutation = true;
     this
   }
+
+  def enableProbablisticMutation(f:Float): Configuration ={
+   enablePMutation=true
+    probab = f
+    this
+  }
+
+
   def getSparkConf(): Boolean = {
     this.enableSparkCompatibleMutation
   }
@@ -61,12 +76,14 @@ class Configuration(filename: String) {
   }
 
   def getMutation(s: String, op: String): String = {
+
     val inverse = inverseOpMap(s)
-    if(inverse == op){
-        val b=  operatorMap(mutationMapping(inverse))
+    if(inverse == op && r.nextFloat() < probab){
+        val b =  operatorMap(mutationMapping(inverse))
         println(s""" $s -> $b """)
       return b
     }
     return s
   }
+
 }
