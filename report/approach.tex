@@ -1,0 +1,36 @@
+\section{Methodology}
+
+This mutation framework is specifically designed for Scala and relies on Scala compiler library to give us access to abstract syntax tree representation of the program. Since the proposed mutation framework is expected to be extensible, we plan to make it as flexible as possible with respect to mutation locations and operators.  With that in mind, we start the mutation process by taking in configuration parameters from the user. These configurations include: 
+\begin{itemize}
+\item Candidate operators for mutations
+\item Set of possible mutation operators
+\item Mutation Location (Pending)
+\item Probabilistic model for mutation location (Pending)
+\end{itemize}
+Once the user provides these mutation specifications, we start collecting all the candidates files of the project. These files are then fed to a scala compiler library which returns an abstract syntax tree representation for each of the program module. One challenge that we faced here is that the AST produced by the compiler is immutable therefore it can not be mutated. Manually cloning of this AST is also not feasible. To get a mutable AST from scala compiler plugin, we used the  abstract syntax tree transformation module. This allows us to rewrite and make changes to the nodes in AST.
+
+To introduce mutations in a program, the AST of that program needs to be traversed in order to find appropriate locations (specifically nodes) where a mutation can be applied. We perform this procedure by using Scala?s pattern matching to match  \texttt{SELECT} and \texttt{TERMNAME} nodes. For example a binary operation like \texttt{+}  on two integers \texttt{2} and \texttt{3} results in a AST that looks like this 
+
+\begin{center}
+\texttt{(SELECT(...  , TERMNAME(\$plus) )}
+\end{center}
+
+When a match is found we apply the transformation as given in the user defined configuration file and replace the node with the newly generated mutated node. 
+
+\begin{center}
+\texttt{Select(b,t1,newTermName("\$minus"))-> Select(b,t1,newTermName("\$plus"))}
+\end{center}
+
+We leave the implementation of probabilistic mutation on selected nodes for later half of the project. 
+
+The process described above returns a modified AST.  Since we want to keep the source code of the mutated program, we use Scala reflect library that transforms the AST into a readable source code. Keeping source code of the mutated version of the program is necessary because a user may want to compare mutation location with a fault inducing location identified from a fault localization tool. The source code generated from this process is not scala compilable code thus require further refactoring. Scala compiler plugin assumes that every AST is part of a \texttt{BLOCK}  node (contains list of child nodes) thus wraps each module into a \texttt{BLOCK} node. So the code generated is contains the code for those \texttt{BLOCK} nodes. We refactor the program to remove these code fragments and transform the code into a compilable scala code. 
+
+The readable mutated code is saved into a file under the respective directory which can be built and run. This whole process can be represented with the following flow diagram
+
+
+\subsection{AST Generation}
+\subsection{Tree Matching}
+\subsection{Mutation Insertion}
+\subsection{Refactoring and Source Code Generation}
+
+
