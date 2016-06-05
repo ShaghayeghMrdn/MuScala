@@ -1,3 +1,8 @@
+
+
+
+
+
 %-----------------------------------------------------------------------------
 %
 %               Template for sigplanconf LaTeX Class
@@ -20,7 +25,7 @@
 %-----------------------------------------------------------------------------
 
 
-\documentclass[preprint]{sigplanconf}
+\documentclass[preprint]{sig-alternate}
 
 % The following \documentclass options may be useful:
 
@@ -104,13 +109,28 @@
 
 \title{A Configurable Mutation Framework for Scala}
 
-\authorinfo{Muhammad Ali Gulzar}
-           {University of California, Los Angeles}
-           {gulzar@cs.ucla.edu}
-
-\authorinfo{Shaghayegh Mardani}
-           {University of California, Los Angeles}
-           {shaghayegh@cs.ucla.edu}
+\numberofauthors{1} %  in this sample file, there are a *total*
+% of EIGHT authors. SIX appear on the 'first-page' (for formatting
+% reasons) and the remaining two appear in the \additionalauthors section.
+%
+\author{
+% You can go ahead and credit any number of authors here,
+% e.g. one 'row of three' or two rows (consisting of one row of three
+% and a second row of one, two or three).
+%
+% The command \alignauthor (no curly braces needed) should
+% precede each author name, affiliation/snail-mail address and
+% e-mail address. Additionally, tag each line of
+% affiliation/address with \affaddr, and tag the
+% e-mail address with \email.
+%
+% 1st. author
+\alignauthor
+ Muhammad Ali Gulzar, Shaghayegh Mardani \\
+ \vspace{5mm}
+ \affaddr{University of California, Los Angeles}\\
+% \email{ {\normalsize{\texttt\{gulzar, miryung\}@cs.ucla.edu}}}
+}
 
 \maketitle
 
@@ -128,23 +148,10 @@ This work is driven, mainly, from two reasons. First, there is no available muta
 \appendix
 \section{Appendix Title}
 Tool Usage 
-\acks
-
-Acknowledgments, if needed.
 
 % We recommend abbrvnat bibliography style.
 
-\bibliographystyle{abbrvnat}
-
-% The bibliography should be embedded for final submission.
-
-\begin{thebibliography}{}
-\softraggedright
-
-\bibitem[Smith et~al.(2009)Smith, Jones]{smith02}
-P. Q. Smith, and X. Y. Jones. ...reference text...
-
-\end{thebibliography}
-
+\bibliographystyle{abbrv}
+\bibliography{sigproc}  
 
 \end{document}
