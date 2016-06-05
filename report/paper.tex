@@ -119,7 +119,7 @@ Importance of testing software programs is clear for everyone familiar with prog
 
 This work is driven, mainly, from two reasons. First, there is no available mutation framework for Scala or Spark. Second, developers often need to inject bugs into their Spark program for testing their applications, though it is not straightforward to do so. Spark programs are written in terms of closures and a user only want to mutate user written code. By developing such framework we can automate the process of seeding bugs at the level of arithmetic operators and introduce location targeted mutations. Furthermore, we enable user to define more generalized mutation operators. In order to achieve a better measurement, we want to create as many distinct mutants as possible. To do so, we add a probabilistic method for choosing mutation operators to introduce bugs evenly over various mutants. 
 \end{abstract}
-\section{Introduction}
+\input{intro}
 \input{related}
 \input{approach}
 \input{evaluation}

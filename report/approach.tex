@@ -1,14 +1,5 @@
 \section{Methodology}
 
-\begin{figure*}[ht!]
-\begin{center}
-\includegraphics[width=0.8\textwidth]{image/flow}
-\vspace{-1em}
-   \caption{Mutation Framework Architecture}
-   \vspace{-1.5em}
-        \label{flow}
-\end{center}
-\end{figure*}
 
 
 This mutation framework is specifically designed for Scala and relies on Scala compiler library to give us access to an intermediate representation of the program. Since the proposed mutation framework is expected to be extensible, we have made it as flexible as possible with respect to mutation locations and operators. This tool comes with a configuration object that maintains the requirements of the user.  To enable a configuration, for example Spark compatible mutation, a user can submit that configuration to the framework. These configurations are then accessed later in the process of mutation to find mutation candidates location. Configurations include: 
