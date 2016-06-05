@@ -2,6 +2,12 @@ package muscala
 
 /**
   * Created by malig on 5/3/16.
+
+    Sample Configuration File
+
+    TARGETOPERATORS=+*-/
+    MUTATIONMAPPING=+ -> -,- -> + , * -> / , / ->
+
   */
 class Configuration(filename: String) {
 
@@ -53,7 +59,7 @@ class Configuration(filename: String) {
   def loadMapping():Configuration = {
     val source = scala.io.Source.fromFile(filename)
     try {
-      val iter = source.getLines()
+     val iter = source.getLines()
       for (a <- iter) {
         if (a.startsWith("TARGETOPERATORS=")) {
           val st = a.replaceFirst("TARGETOPERATORS=", "")
@@ -71,7 +77,12 @@ class Configuration(filename: String) {
           }
         }
       }
+    }catch{
+      case e:Exception =>
+        println("Invalid Configuration File format")
     } finally source.close()
+
+
   return this
   }
 

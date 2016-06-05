@@ -1,13 +1,11 @@
 package muscala
 
 import java.io.File
-import scala.io.Source
 import org.apache.commons.io.FileUtils
-import scala.collection.mutable.ListBuffer
 import scala.reflect.runtime.universe._
 import scala.tools.reflect.{ToolBox, ToolBoxError}
 
-object Extractor {
+class Extractor {
 
   val tb = runtimeMirror(getClass.getClassLoader).mkToolBox()
 
@@ -121,14 +119,11 @@ object Extractor {
 
   var packageMap: Map[String, String] = Map[String, String]()
 
-  def main(args: Array[String]): Unit = {
+  def run(conf:Configuration,inputdir:String, pathtosrc:String, outputdir:String ): Unit = {
     val start = java.lang.System.currentTimeMillis()
-    val conf = new Configuration("conf.txt").loadMapping().enableSparkMutation()
     println(conf.targetOp)
     println(conf.mutationMapping)
-    val outputdir = "mutatedFiles"
-    val inputdir = "rand"
-    val dirstr = "" // previosuly /src/main
+    val dirstr = pathtosrc // previosuly /src/main
     val targetFiles = inputdir + dirstr
     val dir = new File(outputdir)
     if (!dir.exists()) {
@@ -141,7 +136,7 @@ object Extractor {
       try {
         println(s"""Starting Mutation on  $filename  """)
         var count = 0
-        val mutatedList = Extractor.mutate(scalafile.getAbsolutePath, conf)
+        val mutatedList = this.mutate(scalafile.getAbsolutePath, conf)
         for (mutated <- mutatedList) {
           val mutantDir = outputdir + "/mutant_" + filename.substring(0, filename.length - 6) + "_" + count.toString()
           FileUtils.copyDirectory(new File(inputdir), new File(mutantDir))
