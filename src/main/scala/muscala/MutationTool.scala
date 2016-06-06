@@ -8,8 +8,8 @@ object  MutationTool {
 
   def main (args: Array[String] ) {
     val conf = new Configuration("conf.txt").loadMapping().enableSparkMutation()
-    val inputdir = "../CUT"
-    val pathtosrc = "/src/main/scala"   // usually /src/main
+    val inputdir = "../MuExamples/scala-csv-master"
+    val pathtosrc = "/src"   // usually /src/main
     val outputdir = "mutatedFiles"
     val ex = new Extractor()
     ex.run(conf,inputdir,pathtosrc, outputdir)

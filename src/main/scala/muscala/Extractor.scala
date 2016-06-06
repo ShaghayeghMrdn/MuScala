@@ -69,9 +69,8 @@ class Extractor {
         }
     }
 
-    def saveToFile(dir: String, path: File, code: Tree) = {
+    def saveToFile(filepath: String, path: File, code: Tree) = {
         val pack = packageMap.getOrElse(path.getAbsolutePath, "")
-        val filepath = dir + "/" + path.getName
         var c = showCode(code).trim()
 
         if (c(0) == '{' && c(c.length - 1) == '}') {
@@ -120,27 +119,28 @@ class Extractor {
 
     var packageMap: Map[String, String] = Map[String, String]()
 
-    def run(conf: Configuration, inputdir: String, pathtosrc: String, outputDir: String): Unit = {
+    def run(conf: Configuration, inputdir: String, pathToSrc: String, outputDir: String): Unit = {
         val start = java.lang.System.currentTimeMillis()
         println(conf.targetOp)
         println(conf.mutationMapping)
-        val dirstr = pathtosrc // previosuly /src/main
-        val targetFiles = inputdir + dirstr
+        val targetFiles = inputdir + pathToSrc
         val dir = new File(outputDir)
         if (!dir.exists()) {
             dir.mkdir()
         }
 
         for (scalafile <- getRecursiveListOfFiles(new File(targetFiles))) {
+            val subDirIndex = scalafile.toString.indexOf(pathToSrc) + pathToSrc.length
             val filename = scalafile.getName
             try {
-                println(s"""Starting Mutation on  $filename  """)
+                //println(s"""Starting Mutation on  $filename  """)
                 var count = 0
                 val mutatedList = this.mutate(scalafile.getAbsolutePath, conf)
                 for (mutated <- mutatedList) {
                     val mutantDir = outputDir + "/mutant_" + filename.substring(0, filename.length - 6) + "_" + count.toString()
                     FileUtils.copyDirectory(new File(inputdir), new File(mutantDir))
-                    saveToFile(mutantDir + dirstr, scalafile, mutated)
+                    val dstFilePath = mutantDir+pathToSrc+scalafile.toString.substring(subDirIndex)
+                    saveToFile(dstFilePath, scalafile, mutated)
                     count += 1
                 }
                 println(s"""Mutation passed on  $filename  """)
@@ -149,6 +149,7 @@ class Extractor {
                     e.printStackTrace()
                     println(s"""Mutation failed on  $filename . Skipping.... """)
                 }
+                case _ => println(s"""Mutation failed on  $filename . Skipping.... """)
 
             }
         }
